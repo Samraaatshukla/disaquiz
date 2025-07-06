@@ -9,7 +9,142 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      papers: {
+        Row: {
+          created_at: string
+          id: string
+          paper_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          paper_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          paper_name?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          membership_number: string
+          mobile: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          membership_number: string
+          mobile: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          membership_number?: string
+          mobile?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      questions: {
+        Row: {
+          correct_option: Database["public"]["Enums"]["option_enum"]
+          created_at: string
+          id: string
+          option_a: string
+          option_b: string
+          option_c: string
+          option_d: string
+          paper_name: string
+          question: string
+          question_no: number
+        }
+        Insert: {
+          correct_option: Database["public"]["Enums"]["option_enum"]
+          created_at?: string
+          id?: string
+          option_a: string
+          option_b: string
+          option_c: string
+          option_d: string
+          paper_name: string
+          question: string
+          question_no: number
+        }
+        Update: {
+          correct_option?: Database["public"]["Enums"]["option_enum"]
+          created_at?: string
+          id?: string
+          option_a?: string
+          option_b?: string
+          option_c?: string
+          option_d?: string
+          paper_name?: string
+          question?: string
+          question_no?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questions_paper_name_fkey"
+            columns: ["paper_name"]
+            isOneToOne: false
+            referencedRelation: "papers"
+            referencedColumns: ["paper_name"]
+          },
+        ]
+      }
+      user_answers: {
+        Row: {
+          created_at: string
+          id: string
+          is_submitted: boolean
+          question_id: string
+          selected_option: Database["public"]["Enums"]["option_enum"] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_submitted?: boolean
+          question_id: string
+          selected_option?: Database["public"]["Enums"]["option_enum"] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_submitted?: boolean
+          question_id?: string
+          selected_option?: Database["public"]["Enums"]["option_enum"] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +153,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      option_enum: "A" | "B" | "C" | "D"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +268,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      option_enum: ["A", "B", "C", "D"],
+    },
   },
 } as const

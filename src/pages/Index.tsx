@@ -1,14 +1,72 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { AuthForm } from '@/components/auth/AuthForm';
+import { ProfileForm } from '@/components/profile/ProfileForm';
+import { PaperSelection } from '@/components/papers/PaperSelection';
+import { QuizInterface } from '@/components/quiz/QuizInterface';
+import { ResultsView } from '@/components/results/ResultsView';
+
+type AppState = 'papers' | 'quiz' | 'results';
 
 const Index = () => {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+  const { user, profile, loading } = useAuth();
+  const [appState, setAppState] = useState<AppState>('papers');
+  const [selectedPaper, setSelectedPaper] = useState<string>('');
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-lg">Loading...</div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  if (!user) {
+    return <AuthForm />;
+  }
+
+  if (!profile) {
+    return <ProfileForm />;
+  }
+
+  const handleSelectPaper = (paperName: string) => {
+    setSelectedPaper(paperName);
+    setAppState('quiz');
+  };
+
+  const handleQuizSubmit = () => {
+    setAppState('results');
+  };
+
+  const handleBackToPapers = () => {
+    setAppState('papers');
+    setSelectedPaper('');
+  };
+
+  const handleRetakeQuiz = () => {
+    setAppState('quiz');
+  };
+
+  switch (appState) {
+    case 'quiz':
+      return (
+        <QuizInterface
+          paperName={selectedPaper}
+          onSubmit={handleQuizSubmit}
+          onBack={handleBackToPapers}
+        />
+      );
+    case 'results':
+      return (
+        <ResultsView
+          paperName={selectedPaper}
+          onBack={handleBackToPapers}
+          onRetakeQuiz={handleRetakeQuiz}
+        />
+      );
+    default:
+      return <PaperSelection onSelectPaper={handleSelectPaper} />;
+  }
 };
 
 export default Index;
