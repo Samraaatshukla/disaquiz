@@ -27,7 +27,6 @@ export interface Question {
   option_c: string;
   option_d: string;
   correct_option: OptionEnum;
-  created_at: string;
 }
 
 export interface UserAnswer {
@@ -42,4 +41,23 @@ export interface UserAnswer {
 
 export interface QuestionWithAnswer extends Question {
   user_answer?: UserAnswer;
+}
+
+export interface Leaderboard {
+  id: string;
+  user_id: string;
+  paper_name: string;
+  score_percentage: number;
+  total_questions: number;
+  total_correct: number;
+  total_attempted: number;
+  completed_at: string;
+  created_at: string;
+}
+
+export interface LeaderboardWithProfile extends Leaderboard {
+  profile?: {
+    name: string;
+    membership_number: string;
+  };
 }

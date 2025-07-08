@@ -6,6 +6,7 @@ import { QuestionWithAnswer } from '@/types/database';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, RotateCcw, CheckCircle, XCircle } from 'lucide-react';
+import { Leaderboard } from './Leaderboard';
 
 interface ResultsViewProps {
   paperName: string;
@@ -197,6 +198,11 @@ export const ResultsView = ({ paperName, onBack, onRetakeQuiz }: ResultsViewProp
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Leaderboard */}
+        <div className="mb-6">
+          <Leaderboard paperName={paperName} />
         </div>
 
         {/* Detailed Results */}

@@ -115,13 +115,35 @@ export const QuizInterface = ({ paperName, onSubmit, onBack }: QuizInterfaceProp
     try {
       // Mark all answers as submitted
       const questionIds = questions.map(q => q.id);
-      const { error } = await supabase
+      const { error: updateError } = await supabase
         .from('user_answers')
         .update({ is_submitted: true })
         .eq('user_id', user?.id)
         .in('question_id', questionIds);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
+
+      // Calculate results for leaderboard
+      const totalQuestions = questions.length;
+      const totalAttempted = questions.filter(q => q.user_answer?.selected_option).length;
+      const totalCorrect = questions.filter(q => 
+        q.user_answer?.selected_option === q.correct_option
+      ).length;
+      const scorePercentage = totalQuestions > 0 ? (totalCorrect / totalQuestions) * 100 : 0;
+
+      // Save to leaderboard
+      const { error: leaderboardError } = await supabase
+        .from('leaderboard')
+        .insert({
+          user_id: user?.id,
+          paper_name: paperName,
+          score_percentage: scorePercentage,
+          total_questions: totalQuestions,
+          total_correct: totalCorrect,
+          total_attempted: totalAttempted
+        });
+
+      if (leaderboardError) throw leaderboardError;
 
       toast({
         title: "Quiz submitted successfully",
@@ -263,25 +285,8 @@ export const QuizInterface = ({ paperName, onSubmit, onBack }: QuizInterfaceProp
             Previous
           </Button>
           
-          <div className="flex gap-2">
-            {Array.from({ length: Math.min(10, questions.length) }, (_, i) => {
-              const questionIndex = Math.floor(currentIndex / 10) * 10 + i;
-              if (questionIndex >= questions.length) return null;
-              
-              const isAnswered = questions[questionIndex]?.user_answer?.selected_option;
-              
-              return (
-                <Button
-                  key={questionIndex}
-                  variant={questionIndex === currentIndex ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setCurrentIndex(questionIndex)}
-                  className={isAnswered ? "bg-green-100 border-green-300" : ""}
-                >
-                  {questionIndex + 1}
-                </Button>
-              );
-            })}
+          <div className="text-sm text-muted-foreground">
+            Question {currentIndex + 1} of {questions.length}
           </div>
 
           <Button
