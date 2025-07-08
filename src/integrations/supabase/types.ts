@@ -56,6 +56,13 @@ export type Database = {
             referencedRelation: "papers"
             referencedColumns: ["paper_name"]
           },
+          {
+            foreignKeyName: "leaderboard_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       papers: {
