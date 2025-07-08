@@ -80,11 +80,13 @@ export const QuizInterface = ({ paperName, onSubmit, onBack }: QuizInterfaceProp
           question_id: question.id,
           selected_option: selectedOption,
           is_submitted: false
+        }, {
+          onConflict: 'user_id,question_id'
         });
 
       if (error) throw error;
 
-      // Update local state
+      // Update local state immediately
       const updatedQuestions = [...questions];
       updatedQuestions[currentIndex] = {
         ...question,

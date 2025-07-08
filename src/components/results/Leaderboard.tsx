@@ -26,8 +26,7 @@ export const Leaderboard = ({ paperName }: LeaderboardProps) => {
         .select(`
           *,
           profiles:user_id (
-            name,
-            membership_number
+            name
           )
         `)
         .eq('paper_name', paperName)
@@ -110,10 +109,7 @@ export const Leaderboard = ({ paperName }: LeaderboardProps) => {
             <TableRow>
               <TableHead className="w-16">Rank</TableHead>
               <TableHead>Name</TableHead>
-              <TableHead>Membership</TableHead>
               <TableHead className="text-center">Score</TableHead>
-              <TableHead className="text-center">Correct</TableHead>
-              <TableHead className="text-center">Attempted</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -133,23 +129,12 @@ export const Leaderboard = ({ paperName }: LeaderboardProps) => {
                   <TableCell className="font-medium">
                     {entry.profile?.name || 'Unknown User'}
                   </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">
-                      {entry.profile?.membership_number || 'N/A'}
-                    </Badge>
-                  </TableCell>
                   <TableCell className="text-center">
                     <Badge 
                       variant={entry.score_percentage >= 80 ? "default" : entry.score_percentage >= 60 ? "secondary" : "destructive"}
                     >
                       {entry.score_percentage.toFixed(1)}%
                     </Badge>
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {entry.total_correct}/{entry.total_questions}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {entry.total_attempted}/{entry.total_questions}
                   </TableCell>
                 </TableRow>
               );

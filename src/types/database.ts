@@ -58,6 +58,5 @@ export interface Leaderboard {
 export interface LeaderboardWithProfile extends Leaderboard {
   profile?: {
     name: string;
-    membership_number: string;
   };
 }
