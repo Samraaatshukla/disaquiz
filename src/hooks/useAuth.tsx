@@ -24,61 +24,115 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     let isMounted = true;
+    let loadingTimeout: NodeJS.Timeout;
 
-    const fetchProfile = async (userId: string) => {
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
-      
-      if (isMounted) {
-        setProfile(profileData);
+    // Set loading timeout to prevent indefinite loading
+    const setLoadingTimeout = () => {
+      loadingTimeout = setTimeout(() => {
+        if (isMounted) {
+          console.warn('Auth loading timeout reached, setting loading to false');
+          setLoading(false);
+        }
+      }, 10000); // 10 second timeout
+    };
+
+    const clearLoadingTimeout = () => {
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
       }
     };
 
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+    const fetchProfile = async (userId: string) => {
+      try {
+        const { data: profileData, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', userId)
+          .maybeSingle();
+        
+        if (error) {
+          console.error('Error fetching profile:', error);
+        }
+        
+        if (isMounted) {
+          setProfile(profileData);
+        }
+      } catch (error) {
+        console.error('Profile fetch error:', error);
+        if (isMounted) {
+          setProfile(null);
+        }
+      }
+    };
+
+    // Initialize auth state first
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+        }
+        
         if (!isMounted) return;
         
         setSession(session);
         setUser(session?.user ?? null);
         
+        // Fetch profile if user exists
         if (session?.user) {
           await fetchProfile(session.user.id);
         } else {
           setProfile(null);
         }
         
-        // Always set loading to false after processing auth state change
+        // Set loading to false after initialization
         setLoading(false);
+        clearLoadingTimeout();
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        if (isMounted) {
+          setLoading(false);
+          clearLoadingTimeout();
+        }
+      }
+    };
+
+    // Set up auth state listener (non-async callback)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (!isMounted) return;
+        
+        // Update session and user immediately
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        // Handle profile fetching in a separate microtask to avoid blocking
+        if (session?.user) {
+          setTimeout(() => {
+            if (isMounted) {
+              fetchProfile(session.user.id);
+            }
+          }, 0);
+        } else {
+          setProfile(null);
+        }
+        
+        // Ensure loading is set to false
+        setLoading(false);
+        clearLoadingTimeout();
       }
     );
 
-    // Check for existing session
-    const initializeAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!isMounted) return;
-      
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        await fetchProfile(session.user.id);
-      } else {
-        setProfile(null);
-      }
-      
-      // Always set loading to false after initial setup
-      setLoading(false);
-    };
-
+    // Start loading timeout
+    setLoadingTimeout();
+    
+    // Initialize auth
     initializeAuth();
 
     return () => {
       isMounted = false;
+      clearLoadingTimeout();
       subscription.unsubscribe();
     };
   }, []);
