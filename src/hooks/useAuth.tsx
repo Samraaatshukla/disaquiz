@@ -51,6 +51,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setProfile(null);
         }
         
+        // Always set loading to false after processing auth state change
         setLoading(false);
       }
     );
@@ -70,6 +71,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setProfile(null);
       }
       
+      // Always set loading to false after initial setup
       setLoading(false);
     };
 
