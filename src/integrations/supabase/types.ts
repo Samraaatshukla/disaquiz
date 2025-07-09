@@ -203,7 +203,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      reset_quiz_answers: {
+        Args: { p_user_id: string; p_paper_name: string }
+        Returns: number
+      }
     }
     Enums: {
       option_enum: "A" | "B" | "C" | "D"
