@@ -90,13 +90,11 @@ export const ResultsView = ({ paperName, onBack, onRetakeQuiz }: ResultsViewProp
     setResetting(true);
     
     try {
-      // Delete all user answers for this paper
-      const questionIds = results?.questions.map(q => q.id) || [];
-      const { error } = await supabase
-        .from('user_answers')
-        .delete()
-        .eq('user_id', user?.id)
-        .in('question_id', questionIds);
+      // Use the database function to reset quiz answers
+      const { error } = await supabase.rpc('reset_quiz_answers', {
+        p_user_id: user?.id,
+        p_paper_name: paperName
+      });
 
       if (error) throw error;
 
