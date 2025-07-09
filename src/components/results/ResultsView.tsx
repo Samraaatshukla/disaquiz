@@ -212,13 +212,23 @@ export const ResultsView = ({ paperName, onBack, onRetakeQuiz }: ResultsViewProp
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4 max-h-96 overflow-y-auto">
+            <div className="space-y-6 max-h-[70vh] overflow-y-auto">
               {results.questions.map((question) => {
                 const isCorrect = question.user_answer?.selected_option === question.correct_option;
                 const isAttempted = question.user_answer?.selected_option;
                 
+                const getOptionText = (option: string) => {
+                  switch (option) {
+                    case 'A': return question.option_a;
+                    case 'B': return question.option_b;
+                    case 'C': return question.option_c;
+                    case 'D': return question.option_d;
+                    default: return option;
+                  }
+                };
+                
                 return (
-                  <div key={question.id} className="flex items-start gap-3 p-3 rounded-lg border">
+                  <div key={question.id} className="flex items-start gap-3 p-4 rounded-lg border">
                     <div className="flex-shrink-0 mt-1">
                       {isAttempted ? (
                         isCorrect ? (
@@ -232,7 +242,7 @@ export const ResultsView = ({ paperName, onBack, onRetakeQuiz }: ResultsViewProp
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-2 mb-3">
                         <span className="font-medium text-sm">Q{question.question_no}</span>
                         {isAttempted && (
                           <span className={`px-2 py-1 text-xs rounded-full ${
@@ -250,33 +260,29 @@ export const ResultsView = ({ paperName, onBack, onRetakeQuiz }: ResultsViewProp
                         )}
                       </div>
                       
-                      <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                        {question.question}
-                      </p>
+                      <div className="mb-4">
+                        <p className="text-sm font-medium mb-2">Question:</p>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                          {question.question}
+                        </p>
+                      </div>
                       
-                      <div className="text-xs text-muted-foreground">
+                      <div className="space-y-2">
                         {isAttempted && (
-                          <>
-                            Your answer: <span className="font-medium">
-                              {question.user_answer?.selected_option}
-                            </span>
-                          </>
+                          <div className="bg-blue-50 p-3 rounded-md">
+                            <p className="text-xs font-medium text-blue-800 mb-1">Your Answer:</p>
+                            <p className="text-sm text-blue-700">
+                              <span className="font-medium">{question.user_answer?.selected_option}.</span> {getOptionText(question.user_answer?.selected_option || '')}
+                            </p>
+                          </div>
                         )}
-                        {isAttempted && !isCorrect && (
-                          <>
-                            {' • '}
-                            Correct answer: <span className="font-medium text-green-600">
-                              {question.correct_option}
-                            </span>
-                          </>
-                        )}
-                        {!isAttempted && (
-                          <>
-                            Correct answer: <span className="font-medium text-green-600">
-                              {question.correct_option}
-                            </span>
-                          </>
-                        )}
+                        
+                        <div className="bg-green-50 p-3 rounded-md">
+                          <p className="text-xs font-medium text-green-800 mb-1">Correct Answer:</p>
+                          <p className="text-sm text-green-700">
+                            <span className="font-medium">{question.correct_option}.</span> {getOptionText(question.correct_option)}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
