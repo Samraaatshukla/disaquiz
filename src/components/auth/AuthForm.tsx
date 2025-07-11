@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 import { Turnstile } from '@marsidev/react-turnstile';
@@ -12,9 +13,10 @@ export const AuthForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [signInToken, setSignInToken] = useState('');
   const [signUpToken, setSignUpToken] = useState('');
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, signInWithGoogle } = useAuth();
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,6 +77,22 @@ export const AuthForm = () => {
     setLoading(false);
   };
 
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    
+    const { error } = await signInWithGoogle();
+    
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error signing in with Google",
+        description: error.message
+      });
+    }
+    
+    setGoogleLoading(false);
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
@@ -125,6 +143,29 @@ export const AuthForm = () => {
                   {loading ? 'Signing in...' : 'Sign In'}
                 </Button>
               </form>
+              
+              <div className="mt-6">
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <Separator className="w-full" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                      Or continue with
+                    </span>
+                  </div>
+                </div>
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full mt-4"
+                  onClick={handleGoogleSignIn}
+                  disabled={googleLoading}
+                >
+                  {googleLoading ? 'Signing in...' : 'Continue with Google'}
+                </Button>
+              </div>
             </TabsContent>
             
             <TabsContent value="signup">
@@ -163,6 +204,29 @@ export const AuthForm = () => {
                   {loading ? 'Creating account...' : 'Create Account'}
                 </Button>
               </form>
+              
+              <div className="mt-6">
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <Separator className="w-full" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                      Or continue with
+                    </span>
+                  </div>
+                </div>
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full mt-4"
+                  onClick={handleGoogleSignIn}
+                  disabled={googleLoading}
+                >
+                  {googleLoading ? 'Signing in...' : 'Continue with Google'}
+                </Button>
+              </div>
             </TabsContent>
           </Tabs>
         </CardContent>
