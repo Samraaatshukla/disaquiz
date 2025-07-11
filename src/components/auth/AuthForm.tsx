@@ -6,15 +6,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
+import { Turnstile } from '@marsidev/react-turnstile';
 
 export const AuthForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [signInToken, setSignInToken] = useState('');
+  const [signUpToken, setSignUpToken] = useState('');
   const { signIn, signUp } = useAuth();
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!signInToken) {
+      toast({
+        variant: "destructive",
+        title: "CAPTCHA Required",
+        description: "Please complete the CAPTCHA verification"
+      });
+      return;
+    }
+    
     setLoading(true);
     
     const { error } = await signIn(email, password);
@@ -32,6 +45,16 @@ export const AuthForm = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!signUpToken) {
+      toast({
+        variant: "destructive",
+        title: "CAPTCHA Required",
+        description: "Please complete the CAPTCHA verification"
+      });
+      return;
+    }
+    
     setLoading(true);
     
     const { error } = await signUp(email, password);
@@ -88,6 +111,16 @@ export const AuthForm = () => {
                     required
                   />
                 </div>
+                
+                <div className="flex justify-center">
+                  <Turnstile
+                    siteKey="1x00000000000000000000AA"
+                    onSuccess={setSignInToken}
+                    onError={() => setSignInToken('')}
+                    onExpire={() => setSignInToken('')}
+                  />
+                </div>
+                
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? 'Signing in...' : 'Sign In'}
                 </Button>
@@ -116,6 +149,16 @@ export const AuthForm = () => {
                     required
                   />
                 </div>
+                
+                <div className="flex justify-center">
+                  <Turnstile
+                    siteKey="1x00000000000000000000AA"
+                    onSuccess={setSignUpToken}
+                    onError={() => setSignUpToken('')}
+                    onExpire={() => setSignUpToken('')}
+                  />
+                </div>
+                
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? 'Creating account...' : 'Create Account'}
                 </Button>
