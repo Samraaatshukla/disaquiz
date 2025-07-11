@@ -114,7 +114,7 @@ export const AuthForm = () => {
                 
                 <div className="flex justify-center">
                   <Turnstile
-                    siteKey="1x00000000000000000000AA"
+                    siteKey="0x4AAAAAABj-dtIbGVl6JkpZ"
                     onSuccess={setSignInToken}
                     onError={() => setSignInToken('')}
                     onExpire={() => setSignInToken('')}
@@ -152,7 +152,7 @@ export const AuthForm = () => {
                 
                 <div className="flex justify-center">
                   <Turnstile
-                    siteKey="1x00000000000000000000AA"
+                    siteKey="0x4AAAAAABj-dtIbGVl6JkpZ"
                     onSuccess={setSignUpToken}
                     onError={() => setSignUpToken('')}
                     onExpire={() => setSignUpToken('')}
