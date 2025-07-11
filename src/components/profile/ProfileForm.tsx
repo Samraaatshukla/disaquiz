@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,7 +12,19 @@ export const ProfileForm = () => {
   const [email, setEmail] = useState('');
   const [membershipNumber, setMembershipNumber] = useState('');
   const [loading, setLoading] = useState(false);
-  const { createProfile } = useAuth();
+  const { createProfile, user } = useAuth();
+
+  // Auto-populate fields from Google user data
+  useEffect(() => {
+    if (user?.user_metadata) {
+      const metadata = user.user_metadata;
+      if (metadata.full_name) setName(metadata.full_name);
+      if (metadata.name && !metadata.full_name) setName(metadata.name);
+      if (metadata.email) setEmail(metadata.email);
+      if (user.email && !metadata.email) setEmail(user.email);
+      // Note: Mobile number is typically not provided by Google OAuth
+    }
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +46,7 @@ export const ProfileForm = () => {
     } else {
       toast({
         title: "Profile created successfully",
-        description: "Welcome to the quiz app!"
+        description: "Welcome to DISA Practice App!"
       });
     }
     

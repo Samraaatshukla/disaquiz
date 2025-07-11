@@ -97,7 +97,7 @@ export const AuthForm = () => {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Quiz Practice App</CardTitle>
+          <CardTitle className="text-2xl font-bold">DISA Practice App</CardTitle>
           <CardDescription>Sign in to start practicing</CardDescription>
         </CardHeader>
         <CardContent>
