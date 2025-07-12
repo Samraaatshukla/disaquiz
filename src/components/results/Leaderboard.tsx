@@ -30,9 +30,7 @@ export const Leaderboard = ({ paperName }: LeaderboardProps) => {
           )
         `)
         .eq('paper_name', paperName)
-        .order('score_percentage', { ascending: false })
-        .order('completed_at', { ascending: true })
-        .limit(20);
+        .order('completed_at', { ascending: false });
 
       if (error) throw error;
 
@@ -41,7 +39,27 @@ export const Leaderboard = ({ paperName }: LeaderboardProps) => {
         profile: Array.isArray(entry.profiles) ? entry.profiles[0] : entry.profiles
       })) || [];
 
-      setLeaderboard(leaderboardWithProfiles);
+      // Filter to keep only the latest attempt per user
+      const userLatestScores = new Map<string, LeaderboardWithProfile>();
+      
+      leaderboardWithProfiles.forEach(entry => {
+        const existingEntry = userLatestScores.get(entry.user_id);
+        if (!existingEntry || new Date(entry.completed_at) > new Date(existingEntry.completed_at)) {
+          userLatestScores.set(entry.user_id, entry);
+        }
+      });
+
+      // Convert back to array and sort by score percentage (descending), then by completion time (ascending for ties)
+      const filteredLeaderboard = Array.from(userLatestScores.values())
+        .sort((a, b) => {
+          if (b.score_percentage !== a.score_percentage) {
+            return b.score_percentage - a.score_percentage;
+          }
+          return new Date(a.completed_at).getTime() - new Date(b.completed_at).getTime();
+        })
+        .slice(0, 20);
+
+      setLeaderboard(filteredLeaderboard);
     } catch (error: any) {
       toast({
         variant: "destructive",
