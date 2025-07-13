@@ -8,6 +8,8 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
+  isAdmin: boolean;
+  userRole: string | null;
   signUp: (email: string, password: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signInWithGoogle: () => Promise<{ error: any }>;
@@ -22,6 +24,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -66,6 +70,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
+    const fetchUserRole = async (userId: string) => {
+      try {
+        const { data: roleData, error } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .maybeSingle();
+        
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error fetching user role:', error);
+        }
+        
+        if (isMounted) {
+          const role = roleData?.role || 'user';
+          setUserRole(role);
+          setIsAdmin(role === 'admin');
+        }
+      } catch (error) {
+        console.error('Role fetch error:', error);
+        if (isMounted) {
+          setUserRole('user');
+          setIsAdmin(false);
+        }
+      }
+    };
+
     // Initialize auth state first
     const initializeAuth = async () => {
       try {
@@ -80,11 +111,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Fetch profile if user exists
+        // Fetch profile and role if user exists
         if (session?.user) {
           await fetchProfile(session.user.id);
+          await fetchUserRole(session.user.id);
         } else {
           setProfile(null);
+          setUserRole(null);
+          setIsAdmin(false);
         }
         
         // Set loading to false after initialization
@@ -108,15 +142,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Handle profile fetching in a separate microtask to avoid blocking
+        // Handle profile and role fetching in a separate microtask to avoid blocking
         if (session?.user) {
           setTimeout(() => {
             if (isMounted) {
               fetchProfile(session.user.id);
+              fetchUserRole(session.user.id);
             }
           }, 0);
         } else {
           setProfile(null);
+          setUserRole(null);
+          setIsAdmin(false);
         }
         
         // Ensure loading is set to false
@@ -200,6 +237,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       session,
       profile,
       loading,
+      isAdmin,
+      userRole,
       signUp,
       signIn,
       signInWithGoogle,

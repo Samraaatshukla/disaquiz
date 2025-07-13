@@ -20,7 +20,7 @@ export const PaperSelection = ({ onSelectPaper }: PaperSelectionProps) => {
   const [papers, setPapers] = useState<PaperWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [showUpload, setShowUpload] = useState(false);
-  const { profile, signOut } = useAuth();
+  const { profile, signOut, isAdmin } = useAuth();
 
   useEffect(() => {
     fetchPapers();
@@ -113,10 +113,12 @@ export const PaperSelection = ({ onSelectPaper }: PaperSelectionProps) => {
             <p className="text-muted-foreground">Select a paper to start practicing</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setShowUpload(true)}>
-              <Upload className="w-4 h-4 mr-2" />
-              Upload Questions
-            </Button>
+            {isAdmin && (
+              <Button variant="outline" onClick={() => setShowUpload(true)}>
+                <Upload className="w-4 h-4 mr-2" />
+                Upload Questions
+              </Button>
+            )}
             <Button variant="outline" onClick={handleSignOut}>
               <LogOut className="w-4 h-4 mr-2" />
               Sign Out
@@ -128,11 +130,15 @@ export const PaperSelection = ({ onSelectPaper }: PaperSelectionProps) => {
           <div className="text-center py-12">
             <FileText className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
             <h2 className="text-xl font-semibold mb-2">No Papers Available</h2>
-            <p className="text-muted-foreground mb-4">Upload questions to create new papers automatically</p>
-            <Button onClick={() => setShowUpload(true)}>
-              <Upload className="w-4 h-4 mr-2" />
-              Upload Questions
-            </Button>
+            <p className="text-muted-foreground mb-4">
+              {isAdmin ? "Upload questions to create new papers automatically" : "Contact an administrator to add questions"}
+            </p>
+            {isAdmin && (
+              <Button onClick={() => setShowUpload(true)}>
+                <Upload className="w-4 h-4 mr-2" />
+                Upload Questions
+              </Button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
