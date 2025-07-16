@@ -65,6 +65,36 @@ export type Database = {
           },
         ]
       }
+      login_attempts: {
+        Row: {
+          blocked_until: string | null
+          created_at: string
+          email: string
+          failed_attempts: number
+          id: string
+          last_attempt_at: string
+          updated_at: string
+        }
+        Insert: {
+          blocked_until?: string | null
+          created_at?: string
+          email: string
+          failed_attempts?: number
+          id?: string
+          last_attempt_at?: string
+          updated_at?: string
+        }
+        Update: {
+          blocked_until?: string | null
+          created_at?: string
+          email?: string
+          failed_attempts?: number
+          id?: string
+          last_attempt_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       papers: {
         Row: {
           created_at: string
@@ -234,6 +264,14 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
         }
         Returns: boolean
+      }
+      is_user_blocked: {
+        Args: { user_email: string }
+        Returns: boolean
+      }
+      record_login_attempt: {
+        Args: { user_email: string; is_successful: boolean }
+        Returns: undefined
       }
       reset_quiz_answers: {
         Args: { p_user_id: string; p_paper_name: string }

@@ -11,10 +11,11 @@ interface AuthContextType {
   isAdmin: boolean;
   userRole: string | null;
   signUp: (email: string, password: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: any; isBlocked?: boolean }>;
   signInWithGoogle: () => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   createProfile: (profileData: Omit<Profile, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => Promise<{ error: any }>;
+  resetPassword: (email: string) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -187,11 +188,56 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-    return { error };
+    try {
+      // Check if user is blocked before attempting login
+      const { data: isBlocked } = await supabase.rpc('is_user_blocked', { user_email: email });
+      
+      if (isBlocked) {
+        return { 
+          error: { message: 'Account temporarily blocked due to multiple failed login attempts. Please reset your password to continue.' },
+          isBlocked: true 
+        };
+      }
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      // Record the login attempt
+      await supabase.rpc('record_login_attempt', { 
+        user_email: email, 
+        is_successful: !error 
+      });
+
+      if (error) {
+        // Get current failed attempts to show appropriate message
+        const { data: attempts } = await supabase
+          .from('login_attempts')
+          .select('failed_attempts')
+          .eq('email', email)
+          .maybeSingle();
+        
+        const failedAttempts = attempts?.failed_attempts || 0;
+        const remainingAttempts = 5 - failedAttempts;
+        
+        if (remainingAttempts <= 0) {
+          return { 
+            error: { message: 'Account blocked due to multiple failed login attempts. Please reset your password to continue.' },
+            isBlocked: true 
+          };
+        } else if (remainingAttempts <= 2) {
+          return { 
+            error: { message: `Invalid credentials. ${remainingAttempts} attempt(s) remaining before account is blocked.` }
+          };
+        }
+      }
+
+      return { error };
+    } catch (err) {
+      console.error('Sign in error:', err);
+      return { error: err };
+    }
   };
 
   const signInWithGoogle = async () => {
@@ -231,6 +277,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return { error };
   };
 
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    return { error };
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -243,7 +296,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       signIn,
       signInWithGoogle,
       signOut,
-      createProfile
+      createProfile,
+      resetPassword
     }}>
       {children}
     </AuthContext.Provider>
